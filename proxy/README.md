@@ -612,6 +612,23 @@ humain vivant dont le leader est `LEADER_SPECTATOR`.
 - **Tests.** `cargo test` (règle d'excédent, hachages des classes) ; `check_hooks.py` vérifie les
   octets des deux sites, la redirection et sa restauration.
 
+## Canaux sur colline (correctif POL)
+
+[src/canaux.rs](src/canaux.rs). Analyse : [analyses/canaux/README.md](../analyses/canaux/README.md).
+
+- **La règle du jeu.** Le placement du quartier canal refuse une colline en dur (`call 180060220`
+  en `180362eb6`, la colline de la case), même quand `District_ValidTerrains` l'autorise.
+- **Le détour.** L'appel est redirigé vers un relais (`jmp [rip+0]`) : la colline ne compte plus
+  quand les correctifs POL sont actifs, et le terrain est jugé par la base de règles seule. Le jeu
+  de base n'y met que les terrains plats : rien ne change sans un mod qui y ajoute les collines.
+- **Correctif POL, sans réglage.** Même règle que les précédents (`BgdPolActifs`).
+- **Garde-fou.** Le site doit être `mov rcx,rsi ; call 180060220 ; test al,al ; jne`, sinon rien
+  n'est redirigé. L'appel d'origine revient au déchargement du proxy.
+- **Le journal.** `canaux : test de colline du quartier canal redirigé (0x180362eb6)`, puis les 10
+  premières collines acceptées.
+- **Tests.** `cargo test` (règle, octets du site dans le GameCore installé).
+- **Crédit.** Site trouvé par Hotaru Snowy (« Allow Canals on Hills - dll version ») ; aucun code repris.
+
 ## Diplomatie reçue pendant le passage de tour (correctif POL)
 
 [src/fin_tour.rs](src/fin_tour.rs). Analyse : [depart_tour/README.md](../depart_tour/README.md),

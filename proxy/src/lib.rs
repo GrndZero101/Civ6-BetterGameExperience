@@ -22,6 +22,7 @@
 #![allow(non_snake_case)] // le nom de la DLL produite, BGD_GameCore_XP2.
 
 mod avancement;
+mod canaux;
 mod carte;
 mod citoyens;
 mod coalesce;
@@ -276,6 +277,7 @@ pub unsafe extern "system" fn DllMain(module: win::HMODULE, reason: u32, reserve
             ports::on_proxy_unload();
             fin_tour::on_proxy_unload();
             empilement::on_proxy_unload();
+            canaux::on_proxy_unload();
             depart::on_proxy_unload();
             carte::on_proxy_unload();
             improvements::on_proxy_unload();
