@@ -39,6 +39,12 @@ Le `call 180060220` de chaque site est redirigé vers un relais `jmp [rip+0]`. L
 
 - **quartier canal** : « pas une colline » dès que les correctifs POL sont actifs. Le terrain est
   alors jugé par `District_ValidTerrains` seul. Sans mod, rien ne change : les collines n'y sont pas.
+- **canal de Panama** : il n'a pas de table de terrains (`Building_ValidTerrains` est vide pour
+  `BUILDING_PANAMA_CANAL`), ce test est donc son seul garde. La colline ne compte plus que si les
+  correctifs POL sont actifs **et** que l'hôte a coché l'option de partie `BBG_CANALS_ON_HILLS` de
+  Better Balanced Game (« Canals on Hills »). L'option est relue à chaque partie par un bloc Lua
+  ajouté à `WorldViewPlotMessages.lua` (contexte toujours chargé, que ni le proxy ni les mods
+  courants ne remplacent), qui appelle `BGD_CanauxCollines(0|1)`.
 
 Ce qui reste au jeu : la géométrie du canal (deux étendues d'eau, ou une et un centre-ville ; une case
 de terre entière de chaque côté ; virage de 60° au plus ; pas de jonction à trois), qui dépend du
@@ -50,3 +56,4 @@ drapeau `Districts_XP2.Canal` et non d'une table.
 - Correctif actif, collines dans `District_ValidTerrains` : un canal sur colline est accepté, avec
   les autres règles inchangées.
 - L'IA place-t-elle des canaux sur colline ?
+- Canal de Panama sur colline : refusé sans l'option, accepté avec (correctif actif).

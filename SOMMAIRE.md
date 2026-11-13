@@ -63,7 +63,8 @@ Aucun fichier du jeu n'est remplacé, et Steam ne retire donc pas les proxys :
 - [teleportation](analyses/teleportation/README.md) : téléportation vers une ville au départ d'un district
   pour une unité navale (correctif POL) ;
 - [canaux](analyses/canaux/README.md) : quartier canal refusé en dur sur une colline même quand la base
-  de règles l'autorise, test rendu à `District_ValidTerrains` (correctif POL) ;
+  de règles l'autorise, test rendu à `District_ValidTerrains`, et canal de Panama sur colline avec
+  l'option de partie `BBG_CANALS_ON_HILLS` de Better Balanced Game (correctif POL) ;
 - [littoral](analyses/littoral/README.md) : ville côtière qui ne peut plus produire ni acheter de
   navire jusqu'au rechargement, et correctif POL proposé (analyse statique) ;
 - [garde_messages](analyses/garde_messages/README.md) : revue de la garde des messages réseau contre

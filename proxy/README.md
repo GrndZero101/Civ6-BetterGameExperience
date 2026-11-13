@@ -621,12 +621,17 @@ humain vivant dont le leader est `LEADER_SPECTATOR`.
 - **Le détour.** L'appel est redirigé vers un relais (`jmp [rip+0]`) : la colline ne compte plus
   quand les correctifs POL sont actifs, et le terrain est jugé par la base de règles seule. Le jeu
   de base n'y met que les terrains plats : rien ne change sans un mod qui y ajoute les collines.
+- **Canal de Panama.** Le même test (`1803639c2`, `mov rcx,r12`) est son seul garde : il n'a pas de
+  table de terrains. La colline n'y compte plus que si l'hôte a aussi coché l'option de partie
+  `BBG_CANALS_ON_HILLS` de Better Balanced Game, relue à chaque partie par un bloc Lua ajouté à
+  `WorldViewPlotMessages.lua` (`BGD_CanauxCollines`).
 - **Correctif POL, sans réglage.** Même règle que les précédents (`BgdPolActifs`).
-- **Garde-fou.** Le site doit être `mov rcx,rsi ; call 180060220 ; test al,al ; jne`, sinon rien
-  n'est redirigé. L'appel d'origine revient au déchargement du proxy.
-- **Le journal.** `canaux : test de colline du quartier canal redirigé (0x180362eb6)`, puis les 10
-  premières collines acceptées.
-- **Tests.** `cargo test` (règle, octets du site dans le GameCore installé).
+- **Garde-fou.** Chaque site doit être `mov rcx,<case> ; call 180060220 ; test al,al ; jne`, sinon
+  aucun n'est redirigé. Les appels d'origine reviennent au déchargement du proxy.
+- **Le journal.** `canaux : test de colline redirigé (quartier canal 0x180362eb6, canal de Panama
+  0x1803639c2)`, `canaux : option BBG_CANALS_ON_HILLS cochée|décochée`, puis les 10 premières
+  collines acceptées de chaque site.
+- **Tests.** `cargo test` (règle, octets des sites dans le GameCore installé, bloc Lua).
 - **Crédit.** Site trouvé par Hotaru Snowy (« Allow Canals on Hills - dll version ») ; aucun code repris.
 
 ## Diplomatie reçue pendant le passage de tour (correctif POL)
