@@ -63,6 +63,7 @@ pub(crate) fn real_module() -> usize {
         // Avant `ui` : l'accroche Lua n'est posée que si une fonctionnalité en a besoin.
         crate::spectateurs::on_gamecore_loaded(h);
         crate::congres::on_gamecore_loaded(h);
+        crate::canaux::on_gamecore_loaded(h);
         crate::ui::on_gamecore_loaded();
         crate::citoyens::on_gamecore_loaded(h);
         crate::ports::on_gamecore_loaded(h);

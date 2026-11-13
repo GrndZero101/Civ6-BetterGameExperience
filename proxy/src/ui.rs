@@ -166,6 +166,7 @@ fn active() -> bool {
         || crate::mods_ui::any()
         || crate::spectateurs::poses()
         || crate::depart::interface_requise()
+        || crate::canaux::pose()
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1118,6 +1119,10 @@ unsafe fn patch_ui(l: *mut c_void, chunk: &str, src: &[u8], what: &mut Vec<Strin
             .into(),
         );
         return Some(patch_epingles(src, &ctx, opti, mesure));
+    }
+    if is_file(chunk, "WorldViewPlotMessages.lua") && crate::canaux::pose() && crate::canaux::publier(l) {
+        what.push("option de partie BBG_CANALS_ON_HILLS relue (canal de Panama sur colline)".into());
+        return Some(append_blocks(src, &[crate::canaux::BLOC_LUA]));
     }
     if MERVEILLES.load(Ordering::Relaxed) && ctx == "productionhelper.lua" {
         what.push("rattrapage des merveilles ajouté".into());
