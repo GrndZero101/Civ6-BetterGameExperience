@@ -50,10 +50,26 @@ Ce qui reste au jeu : la géométrie du canal (deux étendues d'eau, ou une et u
 de terre entière de chaque côté ; virage de 60° au plus ; pas de jonction à trois), qui dépend du
 drapeau `Districts_XP2.Canal` et non d'une table.
 
-## À vérifier en partie
+## Essais en partie (2026-11-13)
 
-- Correctif actif, sans mod : une colline reste refusée (la base de règles seule la refuse).
-- Correctif actif, collines dans `District_ValidTerrains` : un canal sur colline est accepté, avec
-  les autres règles inchangées.
+Partie solo (correctifs POL actifs), Better Balanced Game avec l'option « Canals on Hills ». Case
+de test : une case plate où un canal est légal (vérifié d'abord), passée en `TERRAIN_PLAINS_HILLS`,
+seule variable changée. Légalité lue par `CityManager`/`play can-build`.
+
+| option `BBG_CANALS_ON_HILLS` | collines dans `District_ValidTerrains` | case plate | même case en colline |
+|---|---|---|---|
+| cochée | oui (10 terrains) | légale | **légale** |
+| décochée | non (5 terrains plats) | légale | **refusée** |
+
+La seconde ligne est l'essai qui compte : le test en dur est contourné (le journal compte les
+collines acceptées), et la base de règles seule refuse la colline. Une liste de terrains non vide
+reste donc une liste blanche.
+
+Le journal montre aussi le test du canal de Panama consulté et gardé par l'option. Le placement d'un
+canal de Panama sur colline n'a pas encore été essayé de bout en bout (plateau de test difficile à
+construire à la main).
+
+## Reste à vérifier
+
+- Canal de Panama sur colline, de bout en bout : refusé sans l'option, accepté avec.
 - L'IA place-t-elle des canaux sur colline ?
-- Canal de Panama sur colline : refusé sans l'option, accepté avec (correctif actif).
