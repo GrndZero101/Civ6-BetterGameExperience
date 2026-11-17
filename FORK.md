@@ -157,6 +157,34 @@ so fork builds never join stock BGE lobbies. When Goaterino bumps the version, b
 Resolve by taking **upstream's new number plus our suffix**, e.g. upstream goes to `"0.11.0"` → we use
 `"0.11.0-respin.1"`. Keep the `// FORK` comment above it.
 
+### Upstream rewrote its history (force-pushed `main`)
+
+It has happened: on 18/11/26 every upstream commit after 6 Nov came back with a new hash and the
+same content. The signs are a huge "new" count with conflicts in files we never touched, and step 2
+refusing (`git merge --ff-only` says "Not possible to fast-forward"). Do **not** run step 4 as
+written: a plain rebase replays all of upstream's old commits on top of their new copies.
+
+`uv run scripts/fork_status.py`, in the civ6-tools workspace, spots this. It names the old upstream tip
+in our history, its same-tree twin in the new one, and the true count of new commits, then prints
+the rebase to run. By hand the check looks like this, with `main` still on the old upstream tip:
+
+```powershell
+git cherry -v respin upstream/main | Select-String '^\+'   # the commits that are really new
+git diff --stat main <new commit with the same subject>    # empty: same content, new hash
+```
+
+Then replace steps 2 and 4. `main` only ever mirrors upstream, so moving it loses nothing. Tag it
+first anyway (step 3, plus `git tag main-backup main`), and use the old tip as `old-base`:
+
+```powershell
+git tag old-base main
+git branch -f main upstream/main
+git switch respin
+git rebase --rebase-merges --update-refs --onto upstream/main old-base respin
+```
+
+Step 5's checks work unchanged, using `old-base` as above.
+
 ### The rebase finished but the result looks wrong
 
 ```powershell
