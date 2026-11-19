@@ -185,6 +185,76 @@ git rebase --rebase-merges --update-refs --onto upstream/main old-base respin
 
 Step 5's checks work unchanged, using `old-base` as above.
 
+### `respin` built on an upstream branch that is not on `main` yet
+
+**Current state (20/11/26).** Steam updated the game to 1.0.12.74 (build 26595377) and every BGE
+build on `upstream/main` hangs or crashes it. Goaterino's port is on `upstream/yodha-stability-fixes`
+(one commit, `91974a4`), not on `main`, so `respin` was rebased onto that branch instead:
+
+```powershell
+git tag stability-base upstream/yodha-stability-fixes   # the upstream commit we sit on
+git rebase --rebase-merges --update-refs upstream/yodha-stability-fixes
+```
+
+Fork additions on top for that build: our three `canaux.rs` addresses in the `MOVED` table of
+`proxy/src/patch.rs` (rows marked `FORK`), `canaux.rs` going through `patch::rva`, and lobby
+version `0.12.0-respin.2`. Keep the tag `stability-base` until the branch reaches `main`;
+`old-base`, `respin-backup` and `canal-backup` (the pre-rebase state on `0bcb7af`) can go once a
+multiplayer game has been played on the new build.
+
+`fork_status` watches both `main` and `yodha-stability-fixes` (`scripts/forks.toml`), so it reports
+when either moves. When it does, find out which case it is:
+
+```powershell
+git fetch upstream
+git merge-base --is-ancestor stability-base upstream/main; $LASTEXITCODE   # 0 = 91974a4 itself is on main
+git log --oneline stability-base..upstream/yodha-stability-fixes          # new commits on the branch
+```
+
+**A. The branch got more commits, still not on `main`.** Move onto its new tip; only our commits
+replay. Then move the tag.
+
+```powershell
+git rebase --rebase-merges --update-refs --onto upstream/yodha-stability-fixes stability-base respin
+git tag -f stability-base upstream/yodha-stability-fixes
+```
+
+**B. Merged into `main` with its commits intact** (the check above prints 0). The normal routine
+works unchanged: Git sees `91974a4` already on `upstream/main` and drops it.
+
+```powershell
+git switch main; git merge --ff-only upstream/main
+git switch respin
+git rebase --rebase-merges --update-refs upstream/main
+```
+
+**C. Squashed, rebased or amended into `main`** (prints 1, but `main` has the port: a new
+`BUILD_1_0_12_74` / `MOVED` in `proxy/src/patch.rs`). Replay only our commits, never `91974a4`:
+
+```powershell
+git switch main; git merge --ff-only upstream/main
+git switch respin
+git rebase --rebase-merges --update-refs --onto upstream/main stability-base respin
+```
+
+**Every case, after the rebase** (on top of step 5's checks):
+
+- `proxy/src/patch.rs`: the conflict to expect. Keep upstream's table and re-add our three `FORK`
+  rows **in sorted order** (the search is binary; `moved_addresses` fails otherwise), and fix the
+  array length. If upstream's `MOVED` is gone or renamed, the port changed shape: re-read
+  `patch.rs` before porting the three addresses again (`canaux.rs` header says what they are).
+- `proxy/src/version.rs`: upstream's new number plus our suffix, `-respin.1` again (e.g.
+  `0.13.0-respin.1`); if upstream did not bump, still bump our suffix whenever the lobby or POL
+  exchange changed.
+- `cargo test` in both crates (the proxy's `every_address_of_the_sources_is_in_the_table` and
+  `canaux::sites_du_jeu` read the installed GameCore), the Lua tests, and `check_hooks.py` against
+  the installed `GameCore_XP2_FinalRelease.dll`: the log must show
+  `canaux : test de colline redirigé` and no `version inattendue`.
+- Build, both `install.ps1` (save `rollover_proxy.cfg` first: the GameCore installer rewrites it with
+  defaults), check `BgdVersion=`, then a solo game past turn 3 before any online test.
+- Once on `main`: `git tag -d stability-base`, and drop `yodha-stability-fixes` from `watch` in
+  `scripts/forks.toml`.
+
 ### The rebase finished but the result looks wrong
 
 ```powershell
