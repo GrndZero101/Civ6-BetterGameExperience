@@ -21,7 +21,7 @@
 //! github.com/Hotaru-Snowy/CanalOnHills) ; aucun code repris. Analyse : analyses/canaux/README.md.
 
 use crate::debordement::{hks, LuaCFn, LUA_GLOBALSINDEX};
-use crate::patch::{alloc_near, rel32, write_rel32, IMAGE_BASE};
+use crate::patch::{alloc_near, rel32, rva, write_rel32};
 use crate::{log, pol};
 use std::ffi::{c_char, c_void};
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicUsize, Ordering};
@@ -52,8 +52,10 @@ static OPTION_PANAMA: AtomicBool = AtomicBool::new(false);
 static ACCEPTEES: [AtomicU32; 2] = [AtomicU32::new(0), AtomicU32::new(0)];
 const MAX_LOGS: u32 = 10;
 
+/// Adresse dans GameCore chargé d'une adresse du build 2026-11-02, traduite pour 1.0.12.74 par
+/// la table de `patch` (FORK : les trois adresses de ce module y sont ajoutées).
 fn gc(addr: u64) -> usize {
-    BASE.load(Ordering::Relaxed) + (addr - IMAGE_BASE) as usize
+    BASE.load(Ordering::Relaxed) + rva(addr)
 }
 
 unsafe fn rd<T: Copy>(addr: usize) -> T {
@@ -141,8 +143,8 @@ pub unsafe fn on_proxy_unload() {
         return;
     }
     for a in &APPELS {
-        let at = base + (a.site - IMAGE_BASE) as usize;
-        if let Some(rel) = rel32(at, base + (EST_COLLINE - IMAGE_BASE) as usize) {
+        let at = base + rva(a.site);
+        if let Some(rel) = rel32(at, base + rva(EST_COLLINE)) {
             write_rel32(at, rel);
         }
     }
@@ -236,12 +238,13 @@ mod tests {
         let pe = u32_at(0x3c);
         let n = u16::from_le_bytes(b[pe + 6..pe + 8].try_into().unwrap()) as usize;
         let opt = u16::from_le_bytes(b[pe + 20..pe + 22].try_into().unwrap()) as usize;
+        // Adresses du build 2026-11-02, traduites pour le build installé (table de `patch`).
         let fichier = |addr: u64| {
-            let rva = (addr - IMAGE_BASE) as usize;
+            let r = rva(addr);
             (0..n).find_map(|i| {
                 let s = pe + 24 + opt + i * 40;
                 let (taille, va, brut) = (u32_at(s + 8), u32_at(s + 12), u32_at(s + 20));
-                (va..va + taille).contains(&rva).then(|| brut + rva - va)
+                (va..va + taille).contains(&r).then(|| brut + r - va)
             })
         };
         for a in &APPELS {
@@ -249,7 +252,7 @@ mod tests {
             assert_eq!(&b[o - 3..o], &a.avant, "{}", a.nom);
             assert_eq!(b[o], 0xe8, "{}", a.nom);
             let rel = i32::from_le_bytes(b[o + 1..o + 5].try_into().unwrap());
-            assert_eq!(a.site as i64 + 5 + rel as i64, EST_COLLINE as i64, "{}", a.nom);
+            assert_eq!(rva(a.site) as i64 + 5 + rel as i64, rva(EST_COLLINE) as i64, "{}", a.nom);
             assert_eq!(&b[o + 5..o + 9], &APRES, "{}", a.nom);
         }
     }
