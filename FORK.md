@@ -187,8 +187,16 @@ Step 5's checks work unchanged, using `old-base` as above.
 
 ### `respin` built on an upstream branch that is not on `main` yet
 
-**Current state (20/11/26).** Steam updated the game to 1.0.12.74 (build 26595377) and every BGE
-build on `upstream/main` hangs or crashes it. Goaterino's port is on `upstream/yodha-stability-fixes`
+**Resolved 21/11/26, kept as the recipe for next time.** Goaterino merged the branch into `main`
+with `91974a4` intact (PR #20, then 0.13.0): case B below. `respin` went back onto `upstream/main`;
+the only conflicts were the expected `patch.rs` rows (129 upstream + 3 `FORK` = 132) and
+`version.rs` (`0.13.0-respin.1`), plus neighbouring insertions in `proxy/src/lib.rs` and
+`proxy/README.md` (keep both). The `0.12.0-respin.2` commit was dropped: it only marked the lobby
+change that upstream's 0.13.0 now carries. `stability-base` is deleted and `scripts/forks.toml`
+watches `main` alone again.
+
+**How it started (20/11/26).** Steam updated the game to 1.0.12.74 (build 26595377) and every BGE
+build on `upstream/main` hung or crashed it. Goaterino's port was on `upstream/yodha-stability-fixes`
 (one commit, `91974a4`), not on `main`, so `respin` was rebased onto that branch instead:
 
 ```powershell
@@ -198,8 +206,8 @@ git rebase --rebase-merges --update-refs upstream/yodha-stability-fixes
 
 Fork additions on top for that build: our three `canaux.rs` addresses in the `MOVED` table of
 `proxy/src/patch.rs` (rows marked `FORK`), `canaux.rs` going through `patch::rva`, and lobby
-version `0.12.0-respin.2`. Keep the tag `stability-base` until the branch reaches `main`;
-`old-base`, `respin-backup` and `canal-backup` (the pre-rebase state on `0bcb7af`) can go once a
+version `0.12.0-respin.2` (dropped at 0.13.0). Keep the tag `stability-base` until the branch
+reaches `main`; `old-base`, `respin-backup` and `canal-backup` (the pre-rebase state on `0bcb7af`) can go once a
 multiplayer game has been played on the new build.
 
 `fork_status` watches both `main` and `yodha-stability-fixes` (`scripts/forks.toml`), so it reports
